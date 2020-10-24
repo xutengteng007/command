@@ -16,17 +16,14 @@
                     <div class="doc">
                         <div class="title alt">Custom</div>
                         <Input v-model="order"></Input>
-                        <Button @click="exec">exec</Button>
+                        <Button @click="exec(order)">exec</Button>
                     </div>
                 </Col>
                 <Col span="17">
-                    <Tabs value="name1">
-                        <TabPane label="console" name="name1">
-                            <!--                            <xterm :socketURI="url"></xterm>-->
-                            {{console}}
+                    <Tabs type="card" closable @on-tab-remove="handleTabRemove">
+                        <TabPane :label="cmd.name" :name="cmd.name" v-if="cmd.select" v-for="cmd in command">
+                            <Command :root-path="absolute" @exec="exec" :console="console"></Command>
                         </TabPane>
-                        <TabPane label="标签二" name="name2">标签二的内容</TabPane>
-                        <TabPane label="标签三" name="name3">标签三的内容</TabPane>
                     </Tabs>
                 </Col>
             </Row>
@@ -35,18 +32,25 @@
 </template>
 
 <script>
-
-    // import Xterm from "./cmd/OpenShell";
+    import Command from './cmd/Command'
 
     export default {
         name: 'landing-page',
-        // components: {Xterm},
+        components: {Command},
         data() {
             return {
                 order: '',
                 url: '',
-                console: ''
+                console: '',
+                command: [{
+                    name: 'cmd',
+                    select: true
+                }],
+                absolute: ''
             }
+        },
+        created() {
+            this.$nextTick(this.absolutePath())
         },
         methods: {
             start() {
@@ -58,14 +62,34 @@
                     }
                 )
             },
-            exec() {
+            exec(order) {
                 var _ = this
+                // todo 新建窗口
+                // this.command.push({
+                //     name: 'cmd01',
+                //     select: true
+                // })
                 this.$cmd.get(
-                    _.order,
+                    order,
                     function (err, data, stderr) {
                         _.console = data
                     }
                 )
+            },
+            absolutePath() {
+                var _ = this
+                return new Promise((resolve, reject) => {
+                    this.$cmd.get(
+                        'chdir',
+                        function (err, data, stderr) {
+                            _.absolute = data.replace('\n', '').replace('\r', '') + '>'
+                            resolve()
+                        }
+                    )
+                })
+            },
+            handleTabRemove(name) {
+                this['tab' + name] = false;
             }
         }
     }
