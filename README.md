@@ -2,6 +2,8 @@
 
 > An electron-vue project
 
+客户端命令行工具
+
 #### Build Setup
 
 ``` bash
